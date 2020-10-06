@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -10,6 +11,9 @@ namespace SCP
     public class Program
     {
         static string[] args2;
+        static string secureKey, pcmove, hmac = "";
+        static int usermove;
+        
         public static void Main(string[] args)
         {
             //копирую массив
@@ -21,10 +25,17 @@ namespace SCP
                 return;
             }
 
+            Game();
 
-            //Выводим аргументы
-            Menu();
+            
+        }
+
+        static void Game()
+        {
+            PCMove();
+            Console.WriteLine("The computer has made its move.");
             RNG();
+            Menu();
         }
 
         static void Menu()
@@ -36,22 +47,26 @@ namespace SCP
             Console.WriteLine("0 - exit");
             string UserMoveStr = Console.ReadLine();
 
-            int UserMoveInt;
+            //int usermove;
 
-            bool isParsable = Int32.TryParse(UserMoveStr, out UserMoveInt);
-
-            if (isParsable)
-                Console.WriteLine("User move integer: " + UserMoveInt);
-            else
+            bool isParsable = Int32.TryParse(UserMoveStr, out usermove);
+            if (usermove == 0)
             {
-                Console.WriteLine("Could not be parsed.");
-                Menu();
+                Console.WriteLine("Good Bye!");
                 return;
             }
 
+            if (isParsable && usermove <= args2.Length)
+            {
 
-            Console.WriteLine("User move: " + UserMoveStr);
-
+                Console.WriteLine("You move: " + args2[usermove - 1]);                
+            }
+            else
+            {
+                Console.WriteLine("Wrong move. Try again");
+                Menu();
+                return;
+            }
         }
 
 
@@ -59,22 +74,30 @@ namespace SCP
         //Генерим ключ в 32 байта
         static void RNG()
         {
-            string SecureKey = "";
-            byte[] random = new Byte[32];
-
-            //RNGCryptoServiceProvider is an implementation of a random number generator.
+            secureKey = "";
+            byte[] random = new Byte[32];            
             RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider();
-            rng.GetBytes(random); // The array is now filled with cryptographically strong random bytes.
-
+            rng.GetBytes(random); 
             foreach (byte bytevalue in random)
             {
-                SecureKey += bytevalue.ToString();
-            }
-            Console.WriteLine(SecureKey);
-            Console.WriteLine(GetHash("Сюда передать выбор ПК строкой", SecureKey));
+                secureKey += bytevalue.ToString();
+            }            
+
+            hmac = GetHash(pcmove, secureKey);
+            Console.WriteLine(hmac);
 
             return;
             
+        }
+
+        public static String PCMove()
+        {
+            Random randommove = new Random();
+            int move = randommove.Next(1, args2.Length+1);
+            //Console.WriteLine(pcmove1.ToString());
+            //Console.WriteLine("PC move: " + move.ToString() + " - " + args2[move - 1]);
+            pcmove = args2[move - 1];
+            return pcmove;
         }
 
         public static String GetHash(String text, String key)
@@ -82,14 +105,14 @@ namespace SCP
             ASCIIEncoding encoding = new ASCIIEncoding();
             Byte[] textBytes = encoding.GetBytes(text);
             Byte[] keyBytes = encoding.GetBytes(key);
-
             HMACSHA256 hash = new HMACSHA256(keyBytes);
             Byte[] hashBytes = hash.ComputeHash(textBytes);
-
             return BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
-
         }
 
-
+        static void Judging()
+        {
+            //Who did win ?
+        }
     }
 }
