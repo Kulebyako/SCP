@@ -1,8 +1,10 @@
-﻿using System;
+﻿using Microsoft.VisualBasic.CompilerServices;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace SCP
 {
@@ -12,7 +14,7 @@ namespace SCP
     {
         static string[] args2;
         static string secureKey, pcmove, hmac = "";
-        static int usermove;
+        static int usermove, move;
         
         public static void Main(string[] args)
         {
@@ -57,9 +59,8 @@ namespace SCP
             }
 
             if (isParsable && usermove <= args2.Length)
-            {
-
-                Console.WriteLine("You move: " + args2[usermove - 1]);                
+            {                
+                Judging();
             }
             else
             {
@@ -93,7 +94,7 @@ namespace SCP
         public static String PCMove()
         {
             Random randommove = new Random();
-            int move = randommove.Next(1, args2.Length+1);
+            move = randommove.Next(1, args2.Length+1);
             //Console.WriteLine(pcmove1.ToString());
             //Console.WriteLine("PC move: " + move.ToString() + " - " + args2[move - 1]);
             pcmove = args2[move - 1];
@@ -113,6 +114,73 @@ namespace SCP
         static void Judging()
         {
             //Who did win ?
+            decimal half;
+            Console.WriteLine("You move: " + args2[usermove - 1]);
+            half = Convert.ToDecimal(args2.Length * 0.5);
+            half = Math.Truncate(half);
+            if (move == usermove)
+            {
+                Console.WriteLine("Dead Heat");
+                Console.WriteLine("PC move: " + pcmove);
+                return;
+            }
+            if ((move + half) > args2.Length)
+            {
+                Console.WriteLine("PC move: " + pcmove);
+                Console.WriteLine("half: " + half);
+                Console.WriteLine("Lenght: " + args2.Length);
+                Console.WriteLine("((move + half) > args2.Length)");
+                //Console.WriteLine("PC move: " + pcmove);
+                int y = (move - Convert.ToInt32(half));
+
+                //for (int i = move; i >= y; i--)
+                int i = move;
+                while (i >= y)
+                {
+                    Console.WriteLine("i: " + i);
+                    //Console.WriteLine("i args: " + args2[i]);
+                    if (i == usermove)
+                    {
+                        Console.WriteLine("You LOSE больше");
+                        Console.WriteLine("PC move: " + pcmove);
+                        return;
+                    }
+                    i--;
+                }
+                if (i == y)
+                {
+                    Console.WriteLine("You WIN больше");
+                    Console.WriteLine("PC move: " + pcmove);
+                    return;
+                }
+
+            }
+            else
+            {
+                Console.WriteLine("((move + half) < args2.Length)");
+                Console.WriteLine("PC move: " + pcmove);
+                int y = (move + Convert.ToInt32(half));
+                int i = move;
+                //for (i = move; i <= y; i++)
+                while (i <= y)
+                {
+                    if (i == usermove)
+                    {
+                        Console.WriteLine("You LOSE меньше");
+                        Console.WriteLine("PC move: " + pcmove);
+                        return;
+                    }
+                    i++;
+                }
+                if (i == y)
+                {
+                    Console.WriteLine("You WIN меньше");
+                    Console.WriteLine("PC move: " + pcmove);
+                    return;
+                }
+            }
+
+            //Console.WriteLine("You windrful: " + pcmove);
         }
     }
 }
