@@ -18,12 +18,10 @@ namespace SCP
         
         public static void Main(string[] args)
         {
-            //копирую массив
             args2 = (string[])args.Clone();
-            //Проверка условий
             if (args.Length % 2 == 0 || args.Length < 3  || args.Length == 0)
             {
-                Console.WriteLine("Задайте нечетное количество агрументов больше трех");
+                Console.WriteLine("Set an odd number of unique arguments more than three");
                 return;
             }
 
@@ -34,25 +32,22 @@ namespace SCP
 
         static void Game()
         {
-            PCMove();
-            Console.WriteLine("The computer has made its move.");
+            PCMove();            
             RNG();
             Menu();
         }
 
         static void Menu()
         {
+            Console.WriteLine("Available moves: ");
             for (int i = 0; i < args2.Length; i++)
             {
                 Console.WriteLine(i + 1 + " - " + args2[i]);
             }
             Console.WriteLine("0 - exit");
             string UserMoveStr = Console.ReadLine();
-
-            //int usermove;
-
             bool isParsable = Int32.TryParse(UserMoveStr, out usermove);
-            if (usermove == 0)
+            if (isParsable && usermove == 0)
             {
                 Console.WriteLine("Good Bye!");
                 return;
@@ -70,9 +65,6 @@ namespace SCP
             }
         }
 
-
-
-        //Генерим ключ в 32 байта
         static void RNG()
         {
             secureKey = "";
@@ -82,10 +74,9 @@ namespace SCP
             foreach (byte bytevalue in random)
             {
                 secureKey += bytevalue.ToString();
-            }            
-
+            }
             hmac = GetHash(pcmove, secureKey);
-            Console.WriteLine(hmac);
+            Console.WriteLine("HMAC: " + hmac);
 
             return;
             
@@ -94,9 +85,7 @@ namespace SCP
         public static String PCMove()
         {
             Random randommove = new Random();
-            move = randommove.Next(1, args2.Length+1);
-            //Console.WriteLine(pcmove1.ToString());
-            //Console.WriteLine("PC move: " + move.ToString() + " - " + args2[move - 1]);
+            move = randommove.Next(1, args2.Length + 1);
             pcmove = args2[move - 1];
             return pcmove;
         }
@@ -113,74 +102,52 @@ namespace SCP
 
         static void Judging()
         {
-            //Who did win ?
-            decimal half;
+            int half;
             Console.WriteLine("You move: " + args2[usermove - 1]);
-            half = Convert.ToDecimal(args2.Length * 0.5);
-            half = Math.Truncate(half);
+            half = Convert.ToInt32((args2.Length - 1) * 0.5);
+
             if (move == usermove)
             {
                 Console.WriteLine("Dead Heat");
                 Console.WriteLine("PC move: " + pcmove);
+                Console.WriteLine("HMAC key: " + secureKey);
                 return;
             }
             if ((move + half) > args2.Length)
-            {
-                Console.WriteLine("PC move: " + pcmove);
-                Console.WriteLine("half: " + half);
-                Console.WriteLine("Lenght: " + args2.Length);
-                Console.WriteLine("((move + half) > args2.Length)");
-                //Console.WriteLine("PC move: " + pcmove);
-                int y = (move - Convert.ToInt32(half));
-
-                //for (int i = move; i >= y; i--)
-                int i = move;
-                while (i >= y)
+            {                
+                int i =1;
+                while (i<= half)
                 {
-                    Console.WriteLine("i: " + i);
-                    //Console.WriteLine("i args: " + args2[i]);
-                    if (i == usermove)
+                    if (usermove == move - i)
                     {
-                        Console.WriteLine("You LOSE больше");
                         Console.WriteLine("PC move: " + pcmove);
-                        return;
-                    }
-                    i--;
-                }
-                if (i == y)
-                {
-                    Console.WriteLine("You WIN больше");
-                    Console.WriteLine("PC move: " + pcmove);
-                    return;
-                }
-
-            }
-            else
-            {
-                Console.WriteLine("((move + half) < args2.Length)");
-                Console.WriteLine("PC move: " + pcmove);
-                int y = (move + Convert.ToInt32(half));
-                int i = move;
-                //for (i = move; i <= y; i++)
-                while (i <= y)
-                {
-                    if (i == usermove)
-                    {
-                        Console.WriteLine("You LOSE меньше");
-                        Console.WriteLine("PC move: " + pcmove);
+                        Console.WriteLine("You lose!");
+                        Console.WriteLine("HMAC key: " + secureKey);
                         return;
                     }
                     i++;
                 }
-                if (i == y)
+                Console.WriteLine("PC move: " + pcmove);
+                Console.WriteLine("You win");
+                Console.WriteLine("HMAC key: " + secureKey);
+            } else
+            {
+                int i = 1;
+                while (i <= half)
                 {
-                    Console.WriteLine("You WIN меньше");
-                    Console.WriteLine("PC move: " + pcmove);
-                    return;
+                    if (usermove == move + i)
+                    {
+                        Console.WriteLine(pcmove);
+                        Console.WriteLine("You win");
+                        Console.WriteLine("HMAC key: " + secureKey);
+                        return;
+                    }
+                    i++;
                 }
+                Console.WriteLine("PC move: " + pcmove);
+                Console.WriteLine("You lose!");
+                Console.WriteLine("HMAC key: " + secureKey);
             }
-
-            //Console.WriteLine("You windrful: " + pcmove);
         }
     }
 }
