@@ -19,6 +19,7 @@ namespace SCP
         public static void Main(string[] args)
         {
             args2 = (string[])args.Clone();
+            CheckForUniqueness();
             if (args.Length % 2 == 0 || args.Length < 3  || args.Length == 0)
             {
                 Console.WriteLine("Set an odd number of unique arguments more than three");
@@ -28,7 +29,30 @@ namespace SCP
             Game();            
         }
 
-        static void Game()
+        static void CheckForUniqueness()
+        {
+            int dublicate = 0;
+            for (int i = 0; i < args2.Length; i++)
+            {
+                dublicate = 0;
+                for (int j = 0; j < args2.Length; j++)
+                {
+                    if (args2[i] == args2[j])
+                    {
+                        dublicate++;
+                        if (dublicate >= 2)
+                        {
+                            Console.WriteLine("Duplicate found: " + args2[j]);
+                            Console.WriteLine("Set an odd number of unique arguments more than three");
+                            Process.GetCurrentProcess().Kill();
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+
+            static void Game()
         {
             PCMove();            
             RNG();
@@ -87,7 +111,6 @@ namespace SCP
             pcmove = args2[move - 1];
             return pcmove;
         }
-
         public static String GetHash(String text, String key)
         {
             ASCIIEncoding encoding = new ASCIIEncoding();
@@ -135,7 +158,7 @@ namespace SCP
                 {
                     if (usermove == move + i)
                     {
-                        Console.WriteLine(pcmove);
+                        Console.WriteLine("PC move: " + pcmove);
                         Console.WriteLine("You win");
                         Console.WriteLine("HMAC key: " + secureKey);
                         return;
