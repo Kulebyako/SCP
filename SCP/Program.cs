@@ -8,9 +8,8 @@ namespace SCP
 {
     public class Program
     {
-        static string[] args2;
-        static string secureKey, pcmove, hmac = "";
-        static int usermove, move;
+        private static string[] args2;
+        private static int usermove;
 
         public static void Main(string[] args)
         {
@@ -18,13 +17,15 @@ namespace SCP
             CheckForArgumentes();
             Game();
         }
-        static void CheckForArgumentes()
+
+        private static void CheckForArgumentes()
         {
             CheckForMinLenght();
             CheckForOdd();
             CheckForUniqueness();
         }
-        static void CheckForUniqueness()
+
+        private static void CheckForUniqueness()
         {
             IEnumerable<string> dist = args2.Distinct();
             if (dist.ToArray().Length != args2.Length)
@@ -32,37 +33,43 @@ namespace SCP
                 ExitDuringCheck();
             }
         }
-        static void CheckForOdd()
+
+        private static void CheckForOdd()
         {
             if (args2.Length % 2 == 0)
             {
                 ExitDuringCheck();
             }
         }
-        static void CheckForMinLenght()
+
+        private static void CheckForMinLenght()
         {
             if (args2.Length < 3)
             {
                 ExitDuringCheck();
             }
         }
-        static void ExitDuringCheck()
+
+        private static void ExitDuringCheck()
         {
             Console.WriteLine("Set an odd number of unique arguments more than three");
             Environment.Exit(0);
         }
-        static void Game()
+
+        private static void Game()
         {
-            PCMove();            
-            RNG();
+            //PCMove();
+            Console.WriteLine("HMAC: " + GetHash(PCMove(Move()), GetSecureKey()));
             Menu();
         }
-        static void Menu()
+
+        private static void Menu()
         {
             AvailableMoves();
             UserMove();
         }
-        static void AvailableMoves()
+
+        private static void AvailableMoves()
         {
             Console.WriteLine("Available moves: ");
             int i = 0;
@@ -73,17 +80,17 @@ namespace SCP
             }
             Console.WriteLine("0 - exit");
         }
-        static void UserMove()
+
+        private static void UserMove()
         {
             string UserMoveStr = Console.ReadLine();
-            bool isParsable = Int32.TryParse(UserMoveStr, out usermove);
+            bool isParsable = int.TryParse(UserMoveStr, out usermove);
             if (isParsable && usermove == 0)
             {
                 Console.WriteLine("Good Bye!");
                 return;
-            }
-
-            if (isParsable && usermove <= args2.Length && usermove > 0)
+            }else if
+                (isParsable && usermove <= args2.Length && usermove > 0)
             {
                 Judging();
             }
@@ -94,73 +101,94 @@ namespace SCP
                 return;
             }
         }
-        static void RNG()
+
+        private static string GetSecureKey()
         {
-            secureKey = "";
-            byte[] random = new Byte[32];            
+            string secureKey = "";
+            byte[] random = new byte[32];
             RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider();
-            rng.GetBytes(random); 
+            rng.GetBytes(random);
             foreach (byte bytevalue in random)
             {
                 secureKey += bytevalue.ToString();
             }
-            hmac = GetHash(pcmove, secureKey);
-            Console.WriteLine("HMAC: " + hmac);
-
-            return;
-            
+            return secureKey;
         }
-        static String PCMove()
+
+        private static string PCMove(int move)
+        {
+            return args2[move - 1];
+        }
+
+        private static int Move()
         {
             Random randommove = new Random();
-            move = randommove.Next(1, args2.Length + 1);
-            pcmove = args2[move - 1];
-            return pcmove;
+            int move = randommove.Next(1, args2.Length + 1);
+            return move;
         }
-        static String GetHash(String text, String key)
+
+        private static string GetHash(string text, string key)
         {
             ASCIIEncoding encoding = new ASCIIEncoding();
-            Byte[] textBytes = encoding.GetBytes(text);
-            Byte[] keyBytes = encoding.GetBytes(key);
+            byte[] textBytes = encoding.GetBytes(text);
+            byte[] keyBytes = encoding.GetBytes(key);
             HMACSHA256 hash = new HMACSHA256(keyBytes);
-            Byte[] hashBytes = hash.ComputeHash(textBytes);
+            byte[] hashBytes = hash.ComputeHash(textBytes);
             return BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
         }
-        static void Result(string result)
+
+        private static void Result(string result)
         {
-            Console.WriteLine($"PC move: {pcmove}\r\n{result}!\r\nHMAC key: {secureKey}");
+            Console.WriteLine($"PC move: {PCMove(Move())}\r\n{result}!\r\nHMAC key: {GetSecureKey()}");
             Environment.Exit(0);
         }
-        static void Judging()
-        {
-            int half;
-            Console.WriteLine("You move: " + args2[usermove - 1]);
-            half = Convert.ToInt32((args2.Length - 1) * 0.5);
 
-            if (move == usermove)
+        private static void Judging()
+        {
+            Console.WriteLine("You move: " + args2[usermove - 1]);
+            int half = Convert.ToInt32((args2.Length - 1) * 0.5);
+
+            CheckDeadJeat();
+            CheckWay(half);
+        }
+        private static void CheckDeadJeat()
+        {
+            if (Move() == usermove)
             {
                 Result("Dead Heat");
             }
-            if ((move + half) > args2.Length)
+        }
+        private static void LeftWay(int half)
+        {
+            for (int i = 1; i <= half; i++)
             {
-                for (int i = 1; i <= half; i++)
+                if (usermove == Move() - i)
                 {
-                    if (usermove == move - i)
-                    {
-                        Result("You lose");
-                    }
+                    Result("You lose");
                 }
-                Result("You win");
-            } else
+            }
+            Result("You win");
+        }
+        private static void RightWay(int half)
+        {
+            for (int i = 1; i <= half; i++)
             {
-                for (int i = 1; i <= half; i++)
+                if (usermove == Move() + i)
                 {
-                    if (usermove == move + i)
-                    {
-                        Result("You win");
-                    }
+                    Result("You win");
                 }
-                Result("You lose");
+            }
+            Result("You lose");
+        }
+        private static void CheckWay(int half)
+        {
+            if ((Move() + half) > args2.Length)
+            {
+                LeftWay(half);
+            }
+            else
+            {
+                RightWay(half);
             }
         }
     }
