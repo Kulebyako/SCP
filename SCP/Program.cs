@@ -20,9 +20,9 @@ namespace SCP
         }
         static void CheckForArgumentes()
         {
-            CheckForUniqueness();
-            CheckForOdd();
             CheckForMinLenght();
+            CheckForOdd();
+            CheckForUniqueness();
         }
         static void CheckForUniqueness()
         {
@@ -65,9 +65,11 @@ namespace SCP
         static void AvailableMoves()
         {
             Console.WriteLine("Available moves: ");
-            for (int i = 0; i < args2.Length; i++)
+            int i = 0;
+            foreach (string arg in args2)
             {
                 Console.WriteLine(i + 1 + " - " + args2[i]);
+                i++;
             }
             Console.WriteLine("0 - exit");
         }
@@ -108,14 +110,14 @@ namespace SCP
             return;
             
         }
-        public static String PCMove()
+        static String PCMove()
         {
             Random randommove = new Random();
             move = randommove.Next(1, args2.Length + 1);
             pcmove = args2[move - 1];
             return pcmove;
         }
-        public static String GetHash(String text, String key)
+        static String GetHash(String text, String key)
         {
             ASCIIEncoding encoding = new ASCIIEncoding();
             Byte[] textBytes = encoding.GetBytes(text);
@@ -124,25 +126,9 @@ namespace SCP
             Byte[] hashBytes = hash.ComputeHash(textBytes);
             return BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
         }
-        static void Lose()
+        static void Result(string result)
         {
-            Console.WriteLine("PC move: " + pcmove);
-            Console.WriteLine("You lose!");
-            Console.WriteLine("HMAC key: " + secureKey);
-            Environment.Exit(0);
-        }
-        static void Win()
-        {
-            Console.WriteLine("PC move: " + pcmove);
-            Console.WriteLine("You win");
-            Console.WriteLine("HMAC key: " + secureKey);
-            Environment.Exit(0);
-        }
-        static void DeadHead()
-        {
-            Console.WriteLine("Dead Heat");
-            Console.WriteLine("PC move: " + pcmove);
-            Console.WriteLine("HMAC key: " + secureKey);
+            Console.WriteLine($"PC move: {pcmove}\r\n{result}!\r\nHMAC key: {secureKey}");
             Environment.Exit(0);
         }
         static void Judging()
@@ -153,7 +139,7 @@ namespace SCP
 
             if (move == usermove)
             {
-                DeadHead();
+                Result("Dead Heat");
             }
             if ((move + half) > args2.Length)
             {
@@ -161,20 +147,20 @@ namespace SCP
                 {
                     if (usermove == move - i)
                     {
-                        Lose();
+                        Result("You lose");
                     }
                 }
-                Win();
+                Result("You win");
             } else
             {
                 for (int i = 1; i <= half; i++)
                 {
                     if (usermove == move + i)
                     {
-                        Win();
+                        Result("You win");
                     }
                 }
-                Lose();
+                Result("You lose");
             }
         }
     }
